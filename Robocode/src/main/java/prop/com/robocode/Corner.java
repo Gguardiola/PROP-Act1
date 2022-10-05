@@ -10,24 +10,15 @@ import java.util.Collections;
 
 public class Corner extends TeamRobot{
 
-    enum type {
-        DEFAULT, 
-        CORNER, 
-        KAMIKAZE
+    enum type { DEFAULT, CORNER, KAMIKAZE
     } type MODEL = type.DEFAULT;
    
-    enum state {
-        START,
-        toCORNER,
-        ATTACK,
-        SENTINEL,
-        KURSK
+    enum state { START, toCORNER, CORNER, ATTACK, SENTINEL, KURSK
     } state STATUS = state.START;
     
-    private Point iniP;
-    private Point[] Corner = { 
-        new Point(0.0, 0.0), new Point(0.0, 0.0),
-        new Point(0.0, 0.0), new Point(0.0, 0.0) };
+    private Point iniP = new Point();
+    private Point[] Corner  = {new Point(), new Point(), new Point(), new Point()};
+    private Point[] CornerX = {new Point(), new Point(), new Point(), new Point()};
     
     private int     corner = -1;
     private boolean cornerTaked = false;
@@ -38,13 +29,16 @@ public class Corner extends TeamRobot{
     public void run(){
         
         setPoints();
+        setRadarColor(Color.RED);
         
         try { broadcastMessage("Point," + iniP.toString());
         } catch (IOException ignored) {}
                 
         while(true){
-            setTurnGunLeft(20);
-            setTurnRadarRight(20);
+            if(STATUS == state.toCORNER){
+                while(STATUS != state.CORNER)
+                    checkCornerPosition();
+            }
             execute();
         }
         
@@ -52,12 +46,21 @@ public class Corner extends TeamRobot{
     
     @Override
     public void onScannedRobot(ScannedRobotEvent e){
-        if(!isTeammate(e.getName())) fire(1);
+        
+        if(!isTeammate(e.getName())){
+            if(STATUS == state.toCORNER) 
+                fire(1);
+        }
     }
     
+    // A veces se al girar se metia contra una pared y se quedaba ahí
     @Override
-    public void onHitByBullet(HitByBulletEvent e){}
-    
+    public void onHitWall(HitWallEvent e){
+        if(STATUS == state.toCORNER){
+            if (e.getBearing() > 0.0) turnLeft(-e.getBearing());
+            else turnRight(-e.getBearing());
+        }
+    }
     
     @Override
     public void onMessageReceived(MessageEvent e){
@@ -65,20 +68,20 @@ public class Corner extends TeamRobot{
         if(e.getMessage().toString().contains("Point")){
             String[] msg = e.getMessage().toString().split(",");
             L.add(e.getSender() + "," + msg[1] + "," + msg[2]);
-        } if(L.size() == 4) sendRobotToCorner();
+        } if(L.size() == 4) decideCornerRobot();
 
     }
     
-    public void sendRobotToCorner(){
+    public void decideCornerRobot(){
         
-        double dist;
+        STATUS = state.toCORNER;
         
         String[] ini0 =  L.get(0).split(",");
         String[] ini1 =  L.get(1).split(",");
         String[] ini2 =  L.get(2).split(",");
         String[] ini3 =  L.get(3).split(",");
         
-        String[] names = { ini0[0], ini1[0], ini2[0], ini3[0] };
+        String[] names = {ini0[0], ini1[0], ini2[0], ini3[0]};
         
         Point iniPX[] = {
             new Point(Double.parseDouble(ini0[1]), Double.parseDouble(ini0[2])),
@@ -87,184 +90,107 @@ public class Corner extends TeamRobot{
             new Point(Double.parseDouble(ini3[1]), Double.parseDouble(ini3[2]))
         };
         
-        /* ---------------------------------------------- */
+        for(int i = 0; i < 4; i++){
+            
+            List<Parell> distL = new ArrayList<>();
+            double dist = iniP.distanceBetween(Corner[i]);
+            for(int j = 0; j < 4; j++) distL.add(new Parell(names[j], iniPX[j].distanceBetween(Corner[i])));
+            Collections.sort(distL);
 
-        List<Parell> L0 = new ArrayList<>();
-        dist = iniP.distanceBetween(Corner[0]);
-        for(int i = 0; i < 4; i++) L0.add(new Parell(names[i], iniPX[i].distanceBetween(Corner[0])));
-        Collections.sort(L0);
-        
-        if((dist < L0.get(0).getDist() && !blackList.contains(getName()))){
-            cornerTaked = true;
-            blackList.add(getName());
-            sendRobotToCornerBL(iniP);
-        }
-        else if(!cornerTaked && blackList.contains(L0.get(0).getName())){
-            Parell nF = nextFreeRobot(L0);
-            if(dist < nF.getDist()){
-                out.println("DIST: " + dist + " FREE: " + nF.getDist() + " N: " + nF.getName());
-                cornerTaked = true;
+            if((dist < distL.get(0).getDist()) && !blackList.contains(getName())){
+                cornerTaked = true; corner = i;
                 blackList.add(getName());
-                sendRobotToCornerBL(iniP);
             }
-            else blackList.add(nF.getName());
-        }
-        else blackList.add(L0.get(0).getName());
-        
-        /* ---------------------------------------------- */
-        
-        List<Parell> L1 = new ArrayList<>();
-        dist = iniP.distanceBetween(Corner[1]);
-        for(int i = 0; i < 4; i++) L1.add(new Parell(names[i], iniPX[i].distanceBetween(Corner[1])));
-        Collections.sort(L1);
-        
-        if((dist < L1.get(0).getDist() && !blackList.contains(getName()))){
-            cornerTaked = true;
-            blackList.add(getName());
-            sendRobotToCornerBR(iniP);
-        }
-        else if(!cornerTaked && blackList.contains(L1.get(0).getName())){
-            Parell nF = nextFreeRobot(L1);
-            if(dist < nF.getDist()){
-                cornerTaked = true;
-                blackList.add(getName());
-                sendRobotToCornerBR(iniP);
+            else if(!cornerTaked && blackList.contains(distL.get(0).getName())){
+                Parell nF = nextFreeRobot(distL);
+                if(dist < nF.getDist()){
+                    cornerTaked = true; corner = i;
+                    blackList.add(getName());
+                }
+                else blackList.add(nF.getName());
             }
-            else blackList.add(nF.getName());
+            else blackList.add(distL.get(0).getName());
+            
         }
-        else blackList.add(L1.get(0).getName());
-        
-        /* ---------------------------------------------- */
-        
-        List<Parell> L2 = new ArrayList<>();
-        dist = iniP.distanceBetween(Corner[2]);
-        for(int i = 0; i < 4; i++) L2.add(new Parell(names[i], iniPX[i].distanceBetween(Corner[2])));
-        Collections.sort(L2);
-        
-        if((dist < L2.get(0).getDist() && !blackList.contains(getName()))){
-            cornerTaked = true;
-            blackList.add(getName());
-            sendRobotToCornerTR(iniP);
-        }
-        else if(!cornerTaked && blackList.contains(L2.get(0).getName())){
-            Parell nF = nextFreeRobot(L2);
-            if(dist < nF.getDist()){
-                cornerTaked = true;
-                blackList.add(getName());
-                sendRobotToCornerTR(iniP);
-            }
-            else blackList.add(nF.getName());
-
-        }
-        else blackList.add(L2.get(0).getName());
-        
-        /* ---------------------------------------------- */
-        
-        List<Parell> L3 = new ArrayList<>();
-        dist = iniP.distanceBetween(Corner[3]);
-        for(int i = 0; i < 4; i++) L3.add(new Parell(names[i], iniPX[i].distanceBetween(Corner[3])));
-        Collections.sort(L3);
-        
-        if((dist < L3.get(0).getDist() && !blackList.contains(getName()))){
-            cornerTaked = true;
-            blackList.add(getName());
-            sendRobotToCornerTL(iniP);
-        }
-        else if(!cornerTaked && blackList.contains(L3.get(0).getName())){
-            Parell nF = nextFreeRobot(L3);
-            if(dist < nF.getDist()){
-                cornerTaked = true;
-                blackList.add(getName());
-                sendRobotToCornerTL(iniP);
-            }
-            else blackList.add(nF.getName());
-        }
-        else blackList.add(L3.get(0).getName());
-        
-        /* ---------------------------------------------- */
-        
+                
         MODEL = cornerTaked ? type.CORNER : type.KAMIKAZE;
-        
-        out.println("MODEL: " + MODEL);
+        STATUS = cornerTaked ? state.toCORNER : state.ATTACK;
         
     }
     
     public Parell nextFreeRobot(List<Parell> L){
         int i = 0; boolean trobat = false;
         while(i < L.size() && !trobat){
-            trobat = !blackList.contains(L.get(i).getName());
-            i++;
-        }
-        return (i > 0) ? L.get(i-1) : L.get(0);
+            trobat = !blackList.contains(L.get(i).getName()); i++;
+        } return (i > 0) ? L.get(i-1) : L.get(0);
     }
-    
-    public void sendRobotToCornerBL(Point actP){
-        corner = 0;
-        turnRight(180.0 - getHeading());
-        ahead(actP.getY());
-        turnRight(90);
-        ahead(actP.getX());
-        turnGunRight(135.0);
-        setColors(Color.BLACK, Color.BLACK, Color.BLACK);
-        execute();
-    }
-    
-    public void sendRobotToCornerBR(Point actP){
-        corner = 1;
-        turnRight(180.0 - getHeading());
-        ahead(actP.getY());
-        turnLeft(90);
-        ahead(Corner[1].getX() - actP.getX());
-        turnGunLeft(135.0);
-        setColors(Color.BLACK, Color.BLACK, Color.BLACK);
-        execute();
-    }
-    
-    public void sendRobotToCornerTR(Point actP){
-        corner = 2;
-        turnRight(-getHeading());
-        ahead(Corner[2].getY() - actP.getY());
-        turnRight(90);
-        ahead(Corner[2].getX() - actP.getX());
-        turnGunRight(135.0);
-        setColors(Color.BLACK, Color.BLACK, Color.BLACK);
-        execute();
-    }
-    
-    public void sendRobotToCornerTL(Point actP){
-        corner = 3;
-        turnRight(-getHeading());
-        ahead(Corner[3].getY() - actP.getY());
-        turnLeft(90);
-        ahead(actP.getX());
-        turnGunLeft(135.0);
-        setColors(Color.BLACK, Color.BLACK, Color.BLACK);
-        execute();
-    }
+   
     
     public void checkCornerPosition(){
         
         Point actP = new Point(getX(), getY());
-        
+        boolean checkCorner = false;
+                
         switch (corner) {
             case 0 -> {
-                if(getX() != 18 && getY() != 18)
-                    sendRobotToCornerBL(actP);
+                if(getX() > 20 || getY() > 20) 
+                    sendRobotToCorner(actP);                    
+                else checkCorner = true;
             }
             case 1 ->{
-                if(getX() != (Corner[1].getX() - 18) && getY() != 18)
-                    sendRobotToCornerBR(actP);
+                if(getX() < (Corner[1].getX() - 20) || getY() > 20) 
+                    sendRobotToCorner(actP);                 
+                else checkCorner = true;
             }
             case 2 -> {
-                if(getX() != (Corner[2].getX() - 18) && getY() != (Corner[2].getY() - 18))
-                    sendRobotToCornerTR(actP);
+                if(getX() < (Corner[2].getX() - 20) || getY() < (Corner[2].getY() - 20))
+                    sendRobotToCorner(actP);                  
+                else checkCorner = true;
             }
             case 3 ->{
-                if(getX() != 18 && getY() != (Corner[3].getY() - 18))
-                    sendRobotToCornerTL(actP);
+                if(getX() > 20 || getY() < (Corner[3].getY() - 20))
+                    sendRobotToCorner(actP);                
+                else checkCorner = true;
             }
         }
+        
+        STATUS = checkCorner ? state.CORNER : state.toCORNER;
         execute();
+    }
+    
+    public void sendRobotToCorner(Point P){
+        
+        if(corner != -1){
+            double phi   = 0.0;
+            double beta  = 0.0;
+            double alpha = getHeading();
+
+            switch(corner){
+                case 0 -> {
+                    phi = Math.toDegrees(Math.atan((P.getY() - 18.0)/(P.getX() - 18.0)));
+                    phi = Math.abs(phi); beta = (360.0 - alpha) - (90 + phi);
+                } case 1 -> {
+                    phi = Math.toDegrees(Math.atan((P.getY() - 18.0)/(CornerX[1].getX() - P.getX()))); 
+                    phi = Math.abs(phi); beta = -alpha + (90 + phi);
+                } case 2 -> {
+                    phi = Math.toDegrees(Math.atan((CornerX[2].getY() - P.getY())/(CornerX[2].getX() - P.getX())));
+                    phi = Math.abs(phi); beta = -alpha + (90 - phi);
+                } case 3 -> {
+                    phi = Math.toDegrees(Math.atan((CornerX[3].getY() - P.getY())/(P.getX() - 18.0)));
+                    phi = Math.abs(phi); beta = (360.0 - alpha) - (90 - phi);
+                }
+            }
+
+            if(beta > 180.0) beta = (-1.0) * (180.0 - beta); 
+            else if(beta < -180.0) beta = (-1.0) * (180.0 + beta);
+
+            if(Math.abs(beta) > 0.01){
+                setTurnRight(beta);
+            }
+            else if (Math.abs(beta) < 0.01){
+                setAhead(P.distanceBetween(CornerX[corner]));
+            }
+        }
     }
     
     public void setPoints(){
@@ -273,6 +199,11 @@ public class Corner extends TeamRobot{
         Corner[1] = new Point(getBattleFieldWidth(), 0.0);
         Corner[2] = new Point(getBattleFieldWidth(), getBattleFieldHeight());
         Corner[3] = new Point(0.0, getBattleFieldHeight());
+        
+        CornerX[0] = new Point(18.0, 18.0);
+        CornerX[1] = new Point(getBattleFieldWidth()-18.0, 18.0);
+        CornerX[2] = new Point(getBattleFieldWidth()-18.0, getBattleFieldHeight()-18.0);
+        CornerX[3] = new Point(18.0, getBattleFieldHeight()-18.0);
     }
     
 }

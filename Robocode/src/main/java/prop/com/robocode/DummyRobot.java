@@ -8,6 +8,7 @@ import java.awt.Color;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import robocode.HitWallEvent;
 import robocode.MessageEvent;
 
 public class DummyRobot extends TeamRobot{
@@ -15,16 +16,8 @@ public class DummyRobot extends TeamRobot{
     @Override
     public void run(){
         
-        setColors(Color.BLACK, Color.RED, Color.RED);
+        setColors(Color.WHITE, Color.WHITE, Color.WHITE);
         turnLeft(getHeading());
-        
-        double dist = distanceB(getX(), getY(), 0.0, 0.0);
-        try {
-            broadcastMessage(dist);
-        } catch (IOException ex) {
-            Logger.getLogger(DummyRobot.class.getName()).log(Level.SEVERE, null, ex);
-        }
-            execute();
         
         while(true){
             ahead(500);
@@ -32,24 +25,17 @@ public class DummyRobot extends TeamRobot{
         }
     }
     
-    public double distanceB(double xO, double yO, double xD, double yD){
-        return Math.sqrt(Math.pow(Math.abs(xD - xO), 2.0) +
-                         Math.pow(Math.abs(yD - yO), 2.0));
-    }
-    
-    @Override
-    public void onMessageReceived(MessageEvent event) {
-        setDebugProperty("MSG [" + event.getSender() + "]", event.getMessage().toString());
-    }
-    
     @Override
     public void onScannedRobot(ScannedRobotEvent e){
-        fire(1);
     }
     
     @Override
-    public void onHitByBullet(HitByBulletEvent e){
-        
+    public void onHitByBullet(HitByBulletEvent e){ 
+    }
+    
+    @Override
+    public void onHitWall(HitWallEvent e){
+        out.println(e.getBearing());
     }
     
 }

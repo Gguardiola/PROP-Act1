@@ -2,8 +2,8 @@ package prop.com.robocode;
 
 public class Parell implements Comparable<Parell>{
     
-    private Double distance;
-    private String robotName;
+    private final Double distance;
+    private final String robotName;
 
     public Parell(String robotName, Double distance) {
         this.distance = distance;
@@ -29,7 +29,5 @@ public class Parell implements Comparable<Parell>{
         return "{" + "D=" + distance + 
                    ", N=" + robotName.charAt(robotName.length()-2) + '}';
     }
-    
-    
     
 }
