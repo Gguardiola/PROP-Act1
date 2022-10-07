@@ -13,13 +13,13 @@ public class Corner extends TeamRobot{
     enum type { DEFAULT, CORNER, KAMIKAZE
     } type MODEL = type.DEFAULT;
    
-    enum state { START, toCORNER, CORNER, ATTACK, SENTINEL, KURSK
+    enum state { START, toCORNER, CORNER, ATTACK, SENTINEL, FOCUS
     } state STATUS = state.START;
-    
-    private Point iniP = new Point();
+        private Point iniP = new Point();
     private Point[] Corner  = {new Point(), new Point(), new Point(), new Point()};
     private Point[] CornerX = {new Point(), new Point(), new Point(), new Point()};
     
+    private int turnCounter = 1;    
     private int     corner = -1;
     private boolean cornerTaked = false;
     private List<String> L = new ArrayList<>();
@@ -29,16 +29,27 @@ public class Corner extends TeamRobot{
     public void run(){
         
         setPoints();
-        setRadarColor(Color.RED);
         
         try { broadcastMessage("Point," + iniP.toString());
         } catch (IOException ignored) {}
                 
         while(true){
-            if(STATUS == state.toCORNER){
-                while(STATUS != state.CORNER)
-                    checkCornerPosition();
+            
+            sentinelMovement();
+            
+            switch(STATUS){
+                case toCORNER -> {
+                    while(STATUS != state.CORNER)
+                        checkCornerPosition();
+                }
+                case CORNER -> {
+                    moveRadar();
+                }
+                case ATTACK -> {
+                    setTurnRadarRight(360);
+                }
             }
+            
             execute();
         }
         
@@ -48,15 +59,18 @@ public class Corner extends TeamRobot{
     public void onScannedRobot(ScannedRobotEvent e){
         
         if(!isTeammate(e.getName())){
-            if(STATUS == state.toCORNER) 
-                fire(1);
+            if(STATUS == state.toCORNER) fire(1);
+            else if(STATUS == state.ATTACK){
+                out.println("NAME: " + e.getName() + " DIST: " + e.getDistance());
+                turnRadarRight(-getRadarHeading());
+                attackRobot(e.getHeading(), e.getDistance());
+            }
         }
     }
     
-    // A veces se al girar se metia contra una pared y se quedaba ahí
     @Override
     public void onHitWall(HitWallEvent e){
-        if(STATUS == state.toCORNER){
+        if(STATUS == state.toCORNER || STATUS == state.ATTACK){
             if (e.getBearing() > 0.0) turnLeft(-e.getBearing());
             else turnRight(-e.getBearing());
         }
@@ -112,9 +126,12 @@ public class Corner extends TeamRobot{
             else blackList.add(distL.get(0).getName());
             
         }
-                
-        MODEL = cornerTaked ? type.CORNER : type.KAMIKAZE;
+                        
+        MODEL  = cornerTaked ? type.CORNER    : type.KAMIKAZE;
         STATUS = cornerTaked ? state.toCORNER : state.ATTACK;
+        
+        if(MODEL == type.KAMIKAZE) 
+            setColors(Color.WHITE, Color.RED, Color.RED);
         
     }
     
@@ -149,47 +166,95 @@ public class Corner extends TeamRobot{
             }
             case 3 ->{
                 if(getX() > 20 || getY() < (Corner[3].getY() - 20))
-                    sendRobotToCorner(actP);                
+                    sendRobotToCorner(actP); 
+                
                 else checkCorner = true;
             }
         }
         
+        out.println("Corner: " + corner);
+        
         STATUS = checkCorner ? state.CORNER : state.toCORNER;
+        
+        if(STATUS == state.CORNER)
+            aimCenter();
+        
         execute();
     }
     
     public void sendRobotToCorner(Point P){
+                                
+        double phi   = 0.0;
+        double beta  = 0.0;
+        double alpha = getHeading();
+
+        switch(corner){
+            case 0 -> {
+                phi = Math.toDegrees(Math.atan((P.getY() - 18.0)/(P.getX() - 18.0)));
+                phi = Math.abs(phi); beta = (360.0 - alpha) - (90 + phi);
+            } case 1 -> {
+                phi = Math.toDegrees(Math.atan((P.getY() - 18.0)/(CornerX[1].getX() - P.getX()))); 
+                phi = Math.abs(phi); beta = -alpha + (90 + phi);
+            } case 2 -> {
+                phi = Math.toDegrees(Math.atan((CornerX[2].getY() - P.getY())/(CornerX[2].getX() - P.getX())));
+                phi = Math.abs(phi); beta = -alpha + (90 - phi);
+            } case 3 -> {
+                phi = Math.toDegrees(Math.atan((CornerX[3].getY() - P.getY())/(P.getX() - 18.0)));
+                phi = Math.abs(phi); beta = (360.0 - alpha) - (90 - phi);
+            }
+        }
         
-        if(corner != -1){
-            double phi   = 0.0;
-            double beta  = 0.0;
-            double alpha = getHeading();
-
-            switch(corner){
-                case 0 -> {
-                    phi = Math.toDegrees(Math.atan((P.getY() - 18.0)/(P.getX() - 18.0)));
-                    phi = Math.abs(phi); beta = (360.0 - alpha) - (90 + phi);
-                } case 1 -> {
-                    phi = Math.toDegrees(Math.atan((P.getY() - 18.0)/(CornerX[1].getX() - P.getX()))); 
-                    phi = Math.abs(phi); beta = -alpha + (90 + phi);
-                } case 2 -> {
-                    phi = Math.toDegrees(Math.atan((CornerX[2].getY() - P.getY())/(CornerX[2].getX() - P.getX())));
-                    phi = Math.abs(phi); beta = -alpha + (90 - phi);
-                } case 3 -> {
-                    phi = Math.toDegrees(Math.atan((CornerX[3].getY() - P.getY())/(P.getX() - 18.0)));
-                    phi = Math.abs(phi); beta = (360.0 - alpha) - (90 - phi);
-                }
-            }
-
-            if(beta > 180.0) beta = (-1.0) * (180.0 - beta); 
-            else if(beta < -180.0) beta = (-1.0) * (180.0 + beta);
-
-            if(Math.abs(beta) > 0.01){
-                setTurnRight(beta);
-            }
-            else if (Math.abs(beta) < 0.01){
-                setAhead(P.distanceBetween(CornerX[corner]));
-            }
+        out.println("BETA: " + beta);
+        
+        if(Math.abs(beta) > 0.01) setTurnRight(beta);
+        else setAhead(P.distanceBetween(CornerX[corner]));
+        
+        execute();
+    }
+    
+    public void aimCenter(){
+        
+        double alpha = getHeading();
+        if(alpha > 180.0) alpha = (-1)*(360-alpha);
+        turnRight(-alpha);
+        
+        switch(corner){
+            case 0 -> setTurnRight(45);
+            case 1 -> setTurnLeft(45);
+            case 2 -> setTurnLeft(135);
+            case 3 -> setTurnRight(135);
+        }
+        execute();
+    }
+    
+    public void attackRobot(double alpha, double dist){
+        
+        execute();
+        
+    }
+    
+    public void moveRadar(){
+        
+        for(int i = 0; i < 5; i++) turnRadarRight(9);
+        for(int i = 0; i < 5; i++) turnRadarRight(-9);
+        for(int i = 0; i < 5; i++) turnRadarRight(-9);
+        for(int i = 0; i < 5; i++) turnRadarRight(9);        
+       
+    }
+    
+    public void rotateRobots(){
+        
+        corner = (corner + 1) % 4;
+        Point actP = new Point(getX(), getY());
+        sendRobotToCorner(actP);
+        execute();
+        
+    }
+    
+    public void sentinelMovement(){
+        if(STATUS == state.CORNER && getTime() > 300*turnCounter){
+            STATUS = state.toCORNER; turnCounter++;
+            corner = (corner + 1) % 4; 
         }
     }
     

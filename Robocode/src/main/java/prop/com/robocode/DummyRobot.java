@@ -5,11 +5,8 @@ import robocode.HitByBulletEvent;
 import robocode.ScannedRobotEvent;
 
 import java.awt.Color;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import robocode.HitWallEvent;
-import robocode.MessageEvent;
+
 
 public class DummyRobot extends TeamRobot{
     
