@@ -1,0 +1,50 @@
+@options
+@packages
+@argfile
+-classpath
+'C:/Users/Omar/.m2/repository/12345/robocode/1.9.4.7/robocode-1.9.4.7.jar'
+-encoding
+'UTF-8'
+-protected
+-source
+'18'
+-sourcepath
+'C:/Users/Omar/Desktop/5é QUADRIMESTRE/Projecte de Programació/Activitat 1/Robocode/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2022. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'C:/Users/Omar/Desktop/5é QUADRIMESTRE/Projecte de Programació/Activitat 1/Robocode/target/site/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'Robocode 1.0-SNAPSHOT API'
+-use
+-version
+-windowtitle
+'Robocode 1.0-SNAPSHOT API'
+prop.com.robocode
+'C:/Users/Omar/Desktop/5é QUADRIMESTRE/Projecte de Programació/Activitat 1/Robocode/src/main/java/prop/com/robocode/Corner.java'
+'C:/Users/Omar/Desktop/5é QUADRIMESTRE/Projecte de Programació/Activitat 1/Robocode/src/main/java/prop/com/robocode/Parell.java'
+'C:/Users/Omar/Desktop/5é QUADRIMESTRE/Projecte de Programació/Activitat 1/Robocode/src/main/java/prop/com/robocode/Punt.java'
+C:\Users\Omar\.m2\repository\12345\robocode\1.9.4.7\robocode-1.9.4.7.jar = 1664099078652
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\src\main\java = 1664102674187
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\allclasses-index.html = 1665420005326
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\allpackages-index.html = 1665420005333
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\copy.svg = 1665420005406
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\element-list = 1665420005200
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\help-doc.html = 1665420005391
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\index-all.html = 1665420005378
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\index.html = 1665420005382
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\jquery-ui.overrides.css = 1665420005478
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\member-search-index.js = 1665420005347
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\module-search-index.js = 1665420005337
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\overview-tree.html = 1665420005302
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\package-search-index.js = 1665420005340
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\script.js = 1665420005402
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\search.js = 1665420005413
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\stylesheet.css = 1665420005398
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\tag-search-index.js = 1665420005350
+C:\Users\Omar\Desktop\5é QUADRIMESTRE\Projecte de Programació\Activitat 1\Robocode\target\site\apidocs\type-search-index.js = 1665420005342

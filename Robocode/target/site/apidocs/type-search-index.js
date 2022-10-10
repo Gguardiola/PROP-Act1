@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"prop.com.robocode","l":"Corner"},{"p":"prop.com.robocode","l":"Parell"},{"p":"prop.com.robocode","l":"Punt"}];updateSearchResults();
